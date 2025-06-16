@@ -1,5 +1,6 @@
 import { users, leads, type User, type InsertUser, type Lead, type InsertLead, type LeadStats, type StateStats } from "@shared/schema";
-import leadsData from "../attached_assets/leads4_1750103502675.json";
+import { readFileSync } from "fs";
+import { join } from "path";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
@@ -34,34 +35,53 @@ export class MemStorage implements IStorage {
   }
 
   private loadLeadsData() {
-    // Convert JSON data to Lead objects
-    (leadsData as any[]).forEach((leadData, index) => {
-      const lead: Lead = {
-        id: index + 1,
-        searchTerm: leadData.search_term || "",
-        state: leadData.state || "Unknown",
-        pageName: leadData.page_name || "",
-        pageId: leadData.page_id || "",
-        adType: leadData.ad_type || "",
-        spendRange: leadData.spend_range || "",
-        impressions: leadData.impressions || "",
-        totalReach: leadData.total_reach || 0,
-        platforms: leadData.platforms || "",
-        startDate: leadData.start_date || "",
-        stopDate: leadData.stop_date || null,
-        durationDays: leadData.duration_days || null,
-        fbLink: leadData.fb_link || "",
-        adLink: leadData.ad_link || "",
-        address: leadData.address || "",
-        website: leadData.website || "",
-        normalizedWebsite: leadData.normalized_website || "",
-        phone: leadData.phone || "",
-        leadScore: leadData.lead_score || 0,
-        leadPriority: leadData.lead_priority || "",
-      };
-      this.leads.set(lead.id, lead);
-    });
-    this.currentLeadId = this.leads.size + 1;
+    try {
+      // Load JSON data from file system for Vercel compatibility
+      let leadsData: any[];
+      try {
+        const filePath = join(process.cwd(), 'attached_assets', 'leads4_1750103502675.json');
+        const fileContent = readFileSync(filePath, 'utf-8');
+        leadsData = JSON.parse(fileContent);
+      } catch (error) {
+        // Fallback for different deployment environments
+        const altPath = join(__dirname, '..', 'attached_assets', 'leads4_1750103502675.json');
+        const fileContent = readFileSync(altPath, 'utf-8');
+        leadsData = JSON.parse(fileContent);
+      }
+
+      // Convert JSON data to Lead objects
+      leadsData.forEach((leadData, index) => {
+        const lead: Lead = {
+          id: index + 1,
+          searchTerm: leadData.search_term || "",
+          state: leadData.state || "Unknown",
+          pageName: leadData.page_name || "",
+          pageId: leadData.page_id || "",
+          adType: leadData.ad_type || "",
+          spendRange: leadData.spend_range || "",
+          impressions: leadData.impressions || "",
+          totalReach: leadData.total_reach || 0,
+          platforms: leadData.platforms || "",
+          startDate: leadData.start_date || "",
+          stopDate: leadData.stop_date || null,
+          durationDays: leadData.duration_days || null,
+          fbLink: leadData.fb_link || "",
+          adLink: leadData.ad_link || "",
+          address: leadData.address || "",
+          website: leadData.website || "",
+          normalizedWebsite: leadData.normalized_website || "",
+          phone: leadData.phone || "",
+          leadScore: leadData.lead_score || 0,
+          leadPriority: leadData.lead_priority || "",
+        };
+        this.leads.set(lead.id, lead);
+      });
+      this.currentLeadId = this.leads.size + 1;
+    } catch (error) {
+      console.error('Error loading leads data:', error);
+      // Initialize with empty data if file loading fails
+      this.currentLeadId = 1;
+    }
   }
 
   async getUser(id: number): Promise<User | undefined> {
