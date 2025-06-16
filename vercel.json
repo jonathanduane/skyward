@@ -1,9 +1,26 @@
 {
   "version": 2,
-  "rewrites": [
+  "builds": [
     {
-      "source": "/(.*)",
-      "destination": "/api/proxy"
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist/public"
+      }
     }
-  ]
+  ],
+  "functions": {
+    "api/leads.ts": {
+      "memory": 1024
+    },
+    "api/leads/stats.ts": {
+      "memory": 512
+    },
+    "api/leads/states.ts": {
+      "memory": 512
+    },
+    "api/leads/new.ts": {
+      "memory": 512
+    }
+  }
 }
