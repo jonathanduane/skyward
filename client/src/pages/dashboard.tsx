@@ -16,7 +16,7 @@ export default function Dashboard() {
   const [selectedSearchTerm, setSelectedSearchTerm] = useState("all");
 
   const { data: leads = [], isLoading } = useQuery<Lead[]>({
-    queryKey: ["/api/get-leads", { search: searchQuery, state: selectedState, searchTerm: selectedSearchTerm }],
+    queryKey: ["/api/data", { search: searchQuery, state: selectedState, searchTerm: selectedSearchTerm }],
   });
 
   const handleExport = async (type: 'all' | 'selected', selectedIds?: number[]) => {
@@ -26,7 +26,7 @@ export default function Dashboard() {
         params.append('selected', selectedIds.join(','));
       }
       
-      const response = await fetch(`/api/get-leads/export?${params}`);
+      const response = await fetch(`/api/data/export?${params}`);
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');

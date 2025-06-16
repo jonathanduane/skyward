@@ -4,7 +4,7 @@ import { storage } from "./storage";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // API routes for local development
-  app.get("/api/get-leads", async (req, res) => {
+  app.get("/api/data", async (req, res) => {
     try {
       const { search, state, searchTerm } = req.query;
       
@@ -29,7 +29,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/get-stats", async (req, res) => {
+  app.get("/api/stats", async (req, res) => {
     try {
       const stats = await storage.getLeadStats();
       res.json(stats);
@@ -39,7 +39,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/get-states", async (req, res) => {
+  app.get("/api/states", async (req, res) => {
     try {
       const stateStats = await storage.getStateStats();
       res.json(stateStats);
@@ -49,7 +49,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/get-new", async (req, res) => {
+  app.get("/api/recent", async (req, res) => {
     try {
       const newLeads = await storage.getNewLeads();
       res.json(newLeads);

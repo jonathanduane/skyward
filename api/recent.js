@@ -1,4 +1,4 @@
-// Australian states distribution endpoint
+// Recent leads endpoint
 const leadsData = [
     {
         "search_term": "coffee shops",
@@ -24,8 +24,8 @@ const leadsData = [
     },
     {
         "search_term": "plumbing services",
-        "state": "NSW", 
-        "page_name": "Elite Plumbing Solutions",
+        "state": "NSW",
+        "page_name": "Elite Plumbing Solutions", 
         "page_id": "2047382947291847",
         "ad_type": "Service",
         "spend_range": "2500-3000",
@@ -46,29 +46,44 @@ const leadsData = [
     }
 ];
 
+function transformLeads() {
+    return leadsData.map((leadData, index) => ({
+        id: index + 1,
+        searchTerm: leadData.search_term || "",
+        state: leadData.state || "Unknown",
+        pageName: leadData.page_name || "",
+        pageId: leadData.page_id || "",
+        adType: leadData.ad_type || "",
+        spendRange: leadData.spend_range || "",
+        impressions: leadData.impressions || "",
+        totalReach: leadData.total_reach || 0,
+        platforms: leadData.platforms || "",
+        startDate: leadData.start_date || "",
+        stopDate: leadData.stop_date || "",
+        durationDays: leadData.duration_days || "",
+        fbLink: leadData.fb_link || "",
+        adLink: leadData.ad_link || "",
+        address: leadData.address || "",
+        website: leadData.website || "",
+        normalizedWebsite: leadData.normalized_website || "",
+        phone: leadData.phone || "",
+        leadScore: leadData.lead_score || 0,
+        leadPriority: leadData.lead_priority || "",
+    }));
+}
+
 export default function handler(req, res) {
     try {
-        const stateCounts = {};
-
-        // Count leads by state
-        leadsData.forEach(lead => {
-            const state = lead.state || 'Unknown';
-            stateCounts[state] = (stateCounts[state] || 0) + 1;
-        });
-
-        const totalLeads = leadsData.length;
+        const allLeads = transformLeads();
         
-        const stateStats = Object.entries(stateCounts)
-            .map(([name, count]) => ({
-                name,
-                count,
-                percentage: Math.round((count / totalLeads) * 100),
-            }))
-            .sort((a, b) => b.count - a.count);
+        // Return the 10 most recent leads by ID (assuming higher ID = newer)
+        const recentLeads = allLeads
+            .sort((a, b) => b.id - a.id)
+            .slice(0, 10);
 
-        res.json(stateStats);
+        res.json(recentLeads);
     } catch (error) {
-        console.error('Error calculating state stats:', error);
-        res.status(500).json({ error: 'Failed to calculate state statistics' });
+        console.error('Error fetching recent leads:', error);
+        res.status(500).json({ error: 'Failed to fetch recent leads' });
     }
 }
