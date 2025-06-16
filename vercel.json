@@ -1,19 +1,5 @@
 {
   "version": 2,
   "buildCommand": "npm run build",
-  "outputDirectory": "dist/public",
-  "functions": {
-    "api/leads.ts": {
-      "memory": 1024
-    },
-    "api/leads/stats.ts": {
-      "memory": 512
-    },
-    "api/leads/states.ts": {
-      "memory": 512
-    },
-    "api/leads/new.ts": {
-      "memory": 512
-    }
-  }
+  "outputDirectory": "dist/public"
 }
