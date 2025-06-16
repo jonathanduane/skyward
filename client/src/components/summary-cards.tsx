@@ -6,7 +6,7 @@ import type { LeadStats } from "@shared/schema";
 
 export default function SummaryCards() {
   const { data: stats, isLoading } = useQuery<LeadStats>({
-    queryKey: ["/api/leads/stats"],
+    queryKey: ["/api/get-stats"],
   });
 
   if (isLoading) {

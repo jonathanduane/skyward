@@ -1,5 +1,6 @@
 import { users, leads, type User, type InsertUser, type Lead, type InsertLead, type LeadStats, type StateStats } from "@shared/schema";
-import { rawLeadsData } from "@shared/leads-data";
+import * as fs from 'fs';
+import * as path from 'path';
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
@@ -34,34 +35,44 @@ export class MemStorage implements IStorage {
   }
 
   private loadLeadsData() {
-    // Convert JSON data to Lead objects
-    (rawLeadsData as any[]).forEach((leadData, index) => {
-      const lead: Lead = {
-        id: index + 1,
-        searchTerm: leadData.search_term || "",
-        state: leadData.state || "Unknown",
-        pageName: leadData.page_name || "",
-        pageId: leadData.page_id || "",
-        adType: leadData.ad_type || "",
-        spendRange: leadData.spend_range || "",
-        impressions: leadData.impressions || "",
-        totalReach: leadData.total_reach || 0,
-        platforms: leadData.platforms || "",
-        startDate: leadData.start_date || "",
-        stopDate: leadData.stop_date || null,
-        durationDays: leadData.duration_days || null,
-        fbLink: leadData.fb_link || "",
-        adLink: leadData.ad_link || "",
-        address: leadData.address || "",
-        website: leadData.website || "",
-        normalizedWebsite: leadData.normalized_website || "",
-        phone: leadData.phone || "",
-        leadScore: leadData.lead_score || 0,
-        leadPriority: leadData.lead_priority || "",
-      };
-      this.leads.set(lead.id, lead);
-    });
-    this.currentLeadId = this.leads.size + 1;
+    try {
+      const jsonPath = path.join(process.cwd(), 'attached_assets', 'leads4_1750103502675.json');
+      const rawData = fs.readFileSync(jsonPath, 'utf8');
+      const rawLeadsData = JSON.parse(rawData) as any[];
+      
+      // Convert JSON data to Lead objects
+      rawLeadsData.forEach((leadData, index) => {
+        const lead: Lead = {
+          id: index + 1,
+          searchTerm: leadData.search_term || "",
+          state: leadData.state || "Unknown",
+          pageName: leadData.page_name || "",
+          pageId: leadData.page_id || "",
+          adType: leadData.ad_type || "",
+          spendRange: leadData.spend_range || "",
+          impressions: leadData.impressions || "",
+          totalReach: leadData.total_reach || 0,
+          platforms: leadData.platforms || "",
+          startDate: leadData.start_date || "",
+          stopDate: leadData.stop_date || "",
+          durationDays: leadData.duration_days || "",
+          fbLink: leadData.fb_link || "",
+          adLink: leadData.ad_link || "",
+          address: leadData.address || "",
+          website: leadData.website || "",
+          normalizedWebsite: leadData.normalized_website || "",
+          phone: leadData.phone || "",
+          leadScore: leadData.lead_score || 0,
+          leadPriority: leadData.lead_priority || "",
+        };
+        this.leads.set(lead.id, lead);
+      });
+      this.currentLeadId = this.leads.size + 1;
+    } catch (error) {
+      console.error('Error loading leads data:', error);
+      // Initialize with empty data if file loading fails
+      this.currentLeadId = 1;
+    }
   }
 
   async getUser(id: number): Promise<User | undefined> {
@@ -92,143 +103,89 @@ export class MemStorage implements IStorage {
   async getLeadStats(): Promise<LeadStats> {
     const allLeads = Array.from(this.leads.values());
     
-    // Calculate total spend from spend ranges
     const totalSpend = allLeads.reduce((sum, lead) => {
-      const spendParts = lead.spendRange.split('-');
-      const spend = parseInt(spendParts[0]) || 0;
-      return sum + spend;
+      const spendRange = lead.spendRange;
+      if (spendRange && spendRange !== "N/A" && spendRange.includes('-')) {
+        const [min, max] = spendRange.split('-').map(Number);
+        return sum + (max || min || 0);
+      }
+      return sum;
     }, 0);
 
     return {
       totalLeads: allLeads.length,
       totalSpend,
       totalReach: allLeads.reduce((sum, lead) => sum + lead.totalReach, 0),
-      highPriority: allLeads.filter(lead => lead.leadPriority === "High").length,
+      highPriority: allLeads.filter(lead => lead.leadPriority === 'high').length,
     };
   }
 
   async getStateStats(): Promise<StateStats[]> {
     const allLeads = Array.from(this.leads.values());
-    const stateCounts = new Map<string, number>();
-    
-    // Extract state from address
+    const stateCounts: { [key: string]: number } = {};
+
+    // Count leads by state
     allLeads.forEach(lead => {
-      let state = lead.state;
-      if (state === "Unknown" && lead.address) {
-        // Try to extract Australian state from address
-        const australianStates = ["NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT"];
-        const addressParts = lead.address.split(" ");
-        for (const part of addressParts) {
-          if (australianStates.includes(part)) {
-            switch (part) {
-              case "NSW": state = "New South Wales"; break;
-              case "VIC": state = "Victoria"; break;
-              case "QLD": state = "Queensland"; break;
-              case "WA": state = "Western Australia"; break;
-              case "SA": state = "South Australia"; break;
-              case "TAS": state = "Tasmania"; break;
-              case "ACT": state = "Australian Capital Territory"; break;
-              case "NT": state = "Northern Territory"; break;
-            }
-            break;
-          }
-        }
-      }
-      
-      const currentCount = stateCounts.get(state) || 0;
-      stateCounts.set(state, currentCount + 1);
+      const state = lead.state || 'Unknown';
+      stateCounts[state] = (stateCounts[state] || 0) + 1;
     });
 
     const totalLeads = allLeads.length;
-    return Array.from(stateCounts.entries())
+    
+    return Object.entries(stateCounts)
       .map(([name, count]) => ({
         name,
         count,
         percentage: Math.round((count / totalLeads) * 100),
       }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 5); // Top 5 states
+      .sort((a, b) => b.count - a.count);
   }
 
   async getNewLeads(sinceDate?: string): Promise<Lead[]> {
     const allLeads = Array.from(this.leads.values());
     
     if (!sinceDate) {
-      // Return leads from the last 7 days based on start_date
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      
+      // Return the 10 most recent leads by ID (assuming higher ID = newer)
       return allLeads
-        .filter(lead => {
-          if (!lead.startDate) return false;
-          const leadDate = new Date(lead.startDate);
-          return leadDate >= sevenDaysAgo;
-        })
-        .sort((a, b) => b.leadScore - a.leadScore)
-        .slice(0, 10); // Top 10 recent leads
+        .sort((a, b) => b.id - a.id)
+        .slice(0, 10);
     }
-    
-    return allLeads
-      .filter(lead => {
-        if (!lead.startDate) return false;
-        return lead.startDate >= sinceDate;
-      })
-      .sort((a, b) => b.leadScore - a.leadScore);
+
+    // Filter by date if provided
+    return allLeads.filter(lead => {
+      if (!lead.startDate || lead.startDate === 'N/A') return false;
+      return new Date(lead.startDate) >= new Date(sinceDate);
+    });
   }
 
   async searchLeads(query: string): Promise<Lead[]> {
-    if (!query.trim()) return this.getAllLeads();
+    if (!query) return this.getAllLeads();
     
     const allLeads = Array.from(this.leads.values());
     const lowercaseQuery = query.toLowerCase();
     
-    return allLeads.filter(lead => 
-      lead.pageName.toLowerCase().includes(lowercaseQuery) ||
+    return allLeads.filter(lead =>
       lead.searchTerm.toLowerCase().includes(lowercaseQuery) ||
+      lead.pageName.toLowerCase().includes(lowercaseQuery) ||
+      lead.state.toLowerCase().includes(lowercaseQuery) ||
       lead.address.toLowerCase().includes(lowercaseQuery) ||
       lead.website.toLowerCase().includes(lowercaseQuery) ||
-      lead.phone.toLowerCase().includes(lowercaseQuery) ||
-      lead.state.toLowerCase().includes(lowercaseQuery)
+      lead.phone.toLowerCase().includes(lowercaseQuery)
     );
   }
 
   async filterLeadsByState(state: string): Promise<Lead[]> {
-    if (!state || state === "all") return this.getAllLeads();
+    if (state === 'all') return this.getAllLeads();
     
     const allLeads = Array.from(this.leads.values());
-    return allLeads.filter(lead => {
-      let leadState = lead.state;
-      if (leadState === "Unknown" && lead.address) {
-        // Try to extract Australian state from address
-        const australianStates = ["NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT"];
-        const addressParts = lead.address.split(" ");
-        for (const part of addressParts) {
-          if (australianStates.includes(part)) {
-            switch (part) {
-              case "NSW": leadState = "New South Wales"; break;
-              case "VIC": leadState = "Victoria"; break;
-              case "QLD": leadState = "Queensland"; break;
-              case "WA": leadState = "Western Australia"; break;
-              case "SA": leadState = "South Australia"; break;
-              case "TAS": leadState = "Tasmania"; break;
-              case "ACT": leadState = "Australian Capital Territory"; break;
-              case "NT": leadState = "Northern Territory"; break;
-            }
-            break;
-          }
-        }
-      }
-      return leadState.toLowerCase().includes(state.toLowerCase());
-    });
+    return allLeads.filter(lead => lead.state === state);
   }
 
   async filterLeadsBySearchTerm(searchTerm: string): Promise<Lead[]> {
-    if (!searchTerm || searchTerm === "all") return this.getAllLeads();
+    if (searchTerm === 'all') return this.getAllLeads();
     
     const allLeads = Array.from(this.leads.values());
-    return allLeads.filter(lead => 
-      lead.searchTerm.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    return allLeads.filter(lead => lead.searchTerm === searchTerm);
   }
 }
 

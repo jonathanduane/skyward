@@ -5,7 +5,7 @@ import type { StateStats } from "@shared/schema";
 
 export default function TopStates() {
   const { data: stateStats = [], isLoading } = useQuery<StateStats[]>({
-    queryKey: ["/api/leads/states"],
+    queryKey: ["/api/get-states"],
   });
 
   if (isLoading) {

@@ -8,7 +8,7 @@ import type { Lead } from "@shared/schema";
 
 export default function NewLeads() {
   const { data: newLeads = [], isLoading } = useQuery<Lead[]>({
-    queryKey: ["/api/leads/new"],
+    queryKey: ["/api/get-new"],
   });
 
   if (isLoading) {

@@ -90,6 +90,9 @@ This is a full-stack leads management application built with React and Express.j
 - June 16, 2025. Initial setup
 - June 16, 2025. Updated color scheme: changed dark purple to salmon color, light purple to black
 - June 16, 2025. Fixed Vercel deployment: embedded JSON data in TypeScript for reliable serverless deployment
+- June 16, 2025. Resolved persistent deployment conflicts by renaming API files (get-leads.js, get-stats.js, get-states.js, get-new.js)
+- June 16, 2025. Fixed storage implementation to properly load all 123 leads from JSON data
+- June 16, 2025. Restored local development API routes while maintaining Vercel serverless compatibility
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
