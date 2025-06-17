@@ -8,6 +8,7 @@ import SummaryCards from "@/components/summary-cards";
 import TopStates from "@/components/top-states";
 import NewLeads from "@/components/new-leads";
 import LeadsTable from "@/components/leads-table";
+import BulkAIAnalysis from "@/components/bulk-ai-analysis";
 import type { Lead } from "@shared/schema";
 
 export default function Dashboard() {
@@ -64,7 +65,7 @@ export default function Dashboard() {
                 alt="Skyward Digital" 
                 className="h-8 w-auto mr-4"
               />
-              <h1 className="text-xl font-semibold text-gray-900">Facebook Leads Dashboard</h1>
+              <h1 className="text-xl font-semibold text-gray-900">Skyward Digital Leads Dashboard</h1>
             </div>
             <div className="flex items-center space-x-4">
               <Button variant="ghost" size="sm">
@@ -81,6 +82,11 @@ export default function Dashboard() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Summary Cards */}
         <SummaryCards />
+
+        {/* AI Analysis Section */}
+        <div className="mb-8">
+          <BulkAIAnalysis />
+        </div>
 
         {/* Top States and New Leads */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">

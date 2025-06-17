@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { aiLeadService } from "./ai-service";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // API routes for local development
@@ -56,6 +57,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching new leads:', error);
       res.status(500).json({ error: 'Failed to fetch new leads' });
+    }
+  });
+
+  // AI Analysis endpoints
+  app.post("/api/ai/analyze-lead/:id", async (req, res) => {
+    try {
+      const leadId = parseInt(req.params.id);
+      const lead = await storage.getLeadById(leadId);
+      
+      if (!lead) {
+        return res.status(404).json({ error: 'Lead not found' });
+      }
+
+      const analysis = await aiLeadService.analyzeLead(lead);
+      res.json(analysis);
+    } catch (error) {
+      console.error('Error analyzing lead:', error);
+      res.status(500).json({ error: 'Failed to analyze lead' });
+    }
+  });
+
+  app.post("/api/ai/analyze-bulk", async (req, res) => {
+    try {
+      const leads = await storage.getAllLeads();
+      const bulkAnalysis = await aiLeadService.analyzeBulkLeads(leads);
+      res.json(bulkAnalysis);
+    } catch (error) {
+      console.error('Error in bulk analysis:', error);
+      res.status(500).json({ error: 'Failed to analyze leads' });
     }
   });
 

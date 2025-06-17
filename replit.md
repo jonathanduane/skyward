@@ -29,10 +29,19 @@ This is a full-stack leads management application built with React and Express.j
 - **Schema Location**: `shared/schema.ts` with Drizzle ORM definitions
 
 ### API Endpoints
-- `GET /api/leads` - Fetch leads with optional filtering (search, state, search term)
-- `GET /api/leads/stats` - Get aggregated lead statistics
-- `GET /api/leads/states` - Get state-wise lead distribution
-- `GET /api/leads/new` - Get recently added leads
+- `GET /api/data` - Fetch leads with optional filtering (search, state, search term)
+- `GET /api/stats` - Get aggregated lead statistics
+- `GET /api/states` - Get state-wise lead distribution
+- `GET /api/recent` - Get recently added leads
+- `POST /api/ai/analyze-lead/:id` - AI analysis for individual lead
+- `POST /api/ai/analyze-bulk` - AI bulk analysis for all leads
+
+### AI Analysis Features
+- **Individual Lead Analysis**: OpenAI-powered scoring, priority assessment, and recommendations
+- **Bulk Lead Analysis**: Comprehensive analysis of all 123 leads with pattern recognition
+- **Lead Scoring**: 0-100 AI-generated scores based on business indicators
+- **Priority Classification**: Automatic priority assignment (low/medium/high/urgent)
+- **Insights Generation**: AI-generated insights, recommendations, and next steps
 
 ### Frontend Pages
 - **Dashboard**: Main view with summary cards, charts, and lead table
@@ -93,6 +102,9 @@ This is a full-stack leads management application built with React and Express.j
 - June 16, 2025. Resolved persistent deployment conflicts by renaming API files (get-leads.js, get-stats.js, get-states.js, get-new.js)
 - June 16, 2025. Fixed storage implementation to properly load all 123 leads from JSON data
 - June 16, 2025. Restored local development API routes while maintaining Vercel serverless compatibility
+- June 16, 2025. Implemented AI-powered lead scoring and recommendation engine with OpenAI integration
+- June 16, 2025. Added individual lead analysis and bulk analysis capabilities with AI insights
+- June 16, 2025. Updated dashboard title to "Skyward Digital Leads Dashboard"
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.

@@ -3,8 +3,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Phone, Globe, Facebook } from "lucide-react";
+import { ExternalLink, Phone, Globe, Facebook, Brain } from "lucide-react";
 import { formatNumber, formatPhone, getSearchTermColor, getPlatformBadges } from "@/lib/utils";
+import AIAnalysisDialog from "./ai-analysis-dialog";
 import type { Lead } from "@shared/schema";
 
 interface LeadsTableProps {
@@ -16,6 +17,8 @@ export default function LeadsTable({ leads, onExport }: LeadsTableProps) {
   const [selectedLeads, setSelectedLeads] = useState<Set<number>>(new Set());
   const [sortField, setSortField] = useState<keyof Lead>('leadScore');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [aiDialogOpen, setAiDialogOpen] = useState(false);
+  const [selectedLeadForAI, setSelectedLeadForAI] = useState<Lead | null>(null);
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -99,6 +102,7 @@ export default function LeadsTable({ leads, onExport }: LeadsTableProps) {
             <SortableHeader field="address">Address</SortableHeader>
             <SortableHeader field="website">Website</SortableHeader>
             <SortableHeader field="phone">Phone</SortableHeader>
+            <TableHead>AI Analysis</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -174,6 +178,19 @@ export default function LeadsTable({ leads, onExport }: LeadsTableProps) {
                   </Button>
                 )}
               </TableCell>
+              <TableCell>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => {
+                    setSelectedLeadForAI(lead);
+                    setAiDialogOpen(true);
+                  }}
+                  className="text-salmon-600 hover:text-salmon-800 hover:bg-salmon-50"
+                >
+                  <Brain className="h-4 w-4" />
+                </Button>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -206,6 +223,13 @@ export default function LeadsTable({ leads, onExport }: LeadsTableProps) {
           </div>
         </div>
       </div>
+
+      {/* AI Analysis Dialog */}
+      <AIAnalysisDialog 
+        lead={selectedLeadForAI}
+        open={aiDialogOpen}
+        onOpenChange={setAiDialogOpen}
+      />
     </div>
   );
 }

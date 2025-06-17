@@ -1,4 +1,3 @@
-// Complete lead dataset - 123 Facebook advertising leads
 const leadsData = [
     {
         "search_term": "coffee shops",
@@ -2707,59 +2706,3 @@ const leadsData = [
         "lead_priority": "Medium"
     }
 ];
-
-// Transform function to convert raw data to Lead format
-function transformLeads() {
-    return leadsData.map((leadData, index) => ({
-        id: index + 1,
-        searchTerm: leadData.search_term || '',
-        state: leadData.state || 'Unknown',
-        pageName: leadData.page_name || '',
-        pageId: leadData.page_id || '',
-        adType: leadData.ad_type || '',
-        spendRange: leadData.spend_range || '',
-        impressions: leadData.impressions || '',
-        totalReach: leadData.total_reach || 0,
-        platforms: leadData.platforms || '',
-        startDate: leadData.start_date || '',
-        stopDate: leadData.stop_date || '',
-        durationDays: leadData.duration_days || '',
-        fbLink: leadData.fb_link || '',
-        adLink: leadData.ad_link || '',
-        address: leadData.address || '',
-        website: leadData.website || '',
-        normalizedWebsite: leadData.normalized_website || '',
-        phone: leadData.phone || '',
-        leadScore: Math.round((leadData.lead_score || 0) / 100) || Math.floor(Math.random() * 100),
-        leadPriority: leadData.lead_priority || 'Medium',
-    }));
-}
-
-export default function handler(req, res) {
-    const { search, state, searchTerm } = req.query;
-    
-    let leads = transformLeads();
-    
-    // Apply filters
-    if (search) {
-        const query = search.toLowerCase();
-        leads = leads.filter(lead =>
-            lead.searchTerm.toLowerCase().includes(query) ||
-            lead.pageName.toLowerCase().includes(query) ||
-            lead.state.toLowerCase().includes(query) ||
-            lead.address.toLowerCase().includes(query) ||
-            lead.website.toLowerCase().includes(query) ||
-            lead.phone.toLowerCase().includes(query)
-        );
-    }
-    
-    if (state && state !== 'all') {
-        leads = leads.filter(lead => lead.state === state);
-    }
-    
-    if (searchTerm && searchTerm !== 'all') {
-        leads = leads.filter(lead => lead.searchTerm === searchTerm);
-    }
-    
-    res.json(leads);
-}
